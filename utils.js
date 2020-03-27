@@ -50,6 +50,15 @@ const makeObj = line => {
    }
 }
 
+const iterate = (exprs, arr, parent, ws) => {
+   for(let i = 0; i < arr.length; i++) {
+      const formatted = exprs.map(x => x.replace('$_', arr[i]).replace('$i', i))
+      formatted.forEach(x => {
+         parent.children.push(makeObj(' '.repeat(ws) + x))
+      })
+   }
+}
+
 const makeHTML = (node, first = false) => {
    let html = first ? `<!DOCTYPE html>\n` : ''
    let tabs = ' '.repeat(node.whitespace)
@@ -68,5 +77,6 @@ module.exports = {
    makeObj,
    makeHTML,
    validateWhiteSpace,
-   WhiteSpaceError
+   WhiteSpaceError,
+   iterate
 }

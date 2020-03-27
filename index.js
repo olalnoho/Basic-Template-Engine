@@ -4,7 +4,8 @@ const {
    makeObj,
    makeHTML,
    validateWhiteSpace,
-   WhiteSpaceError
+   WhiteSpaceError,
+   iterate
 } = require('./utils')
 
 const IS_DEBUG = process.argv[2] == 'd';
@@ -15,12 +16,23 @@ const parse = (str, opts) => {
    const stack = [root]
    let validator;
    let tabLen;
-   for (let token of arr) {
+   for (let i = 0; i < arr.length; i++) {
+      let token = arr[i]
       if (!token.trim()) continue
-      token = token.replace(/\$\{(.+)\}/, (val, g) => {
+      token = arr[i].replace(/\$\{(.+)\}/, (val, g) => {
          if(!opts[g]) throw new Error(`Could not find value for ${g}`)
          return opts[g]
       })
+      if(token.trim().startsWith('each ')) {
+         const iterator = opts[token.trim().split(' ')[1]]
+         const exprs = []
+         while(arr[++i].trim() !== 'end') {
+            exprs.push(arr[i].trim())
+         }
+         iterate(exprs, iterator, stack.last, getWhiteSpace(token))
+         token = arr[++i]
+         if(!token) break
+      }
       const el = makeObj(token)
       if (validator && !validator(el.whitespace)) {
          throw new WhiteSpaceError(tabLen)
@@ -53,8 +65,14 @@ const parse = (str, opts) => {
    fs.writeFileSync('./testfiles/index.html', makeHTML(root))
 }
 
-const file = fs.readFileSync('./test.pug', 'utf8')
+const file = fs.readFileSync('./testfiles/testfile', 'utf8')
 parse(file, {
    paragraph: 'This is a long paragraph',
-   heading: 'Title for box'
+   heading: 'Title for box',
+   values: [
+      'Mandy',
+      'Jasmine',
+      'James',
+      'Steve'
+   ]
 })
