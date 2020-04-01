@@ -51,9 +51,17 @@ const makeObj = line => {
 }
 
 const evalCond = (cond, input) => {
-   if(/\$\{\w+\}/.test(cond)) {
+   if (/\$\{\w+\}/.test(cond)) {
       return cond.slice(2, -1) in input
    }
+}
+
+const getIterator = exp => {
+   const [start, end] = exp.split('..')
+   if(!start || !end) throw new Error('Not a valid iterator')
+   const a = Array.from({length: (end - start) + 1}, (x, i) => +start + i)
+   console.log(a)
+   return a
 }
 
 const iterate = (exprs, arr, parent, ws) => {
@@ -68,7 +76,7 @@ const iterate = (exprs, arr, parent, ws) => {
 const buildIfBody = (exprs, parent, ws) => {
    exprs.forEach(e => {
       parent.children.push(
-         makeObj(' ' .repeat(ws) + e)
+         makeObj(' '.repeat(ws) + e)
       )
    })
 }
@@ -100,6 +108,7 @@ module.exports = {
    validateWhiteSpace,
    WhiteSpaceError,
    iterate,
+   getIterator,
    evalCond,
    buildIfBody,
    insertValues

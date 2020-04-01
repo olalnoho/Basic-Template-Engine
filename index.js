@@ -6,6 +6,7 @@ const {
    validateWhiteSpace,
    WhiteSpaceError,
    iterate,
+   getIterator,
    evalCond,
    buildIfBody,
    insertValues
@@ -25,7 +26,8 @@ const parse = (str, opts) => {
       if (!t_token) continue
 
       if (t_token.startsWith('each ')) {
-         const iterator = opts[token.trim().split(' ')[1]]
+         const s = token.trim().split(' ')[1]
+         const iterator = opts[s] || getIterator(s)
          const exprs = []
          while (arr[++i].trim() !== 'end') {
             // exprs.push(arr[i].trim())
@@ -36,6 +38,7 @@ const parse = (str, opts) => {
       }
 
       if (t_token.startsWith('if ')) {
+         console.log(stack.last)
          const condition = t_token.slice(2).trim()
          const exprs = []
          while (arr[++i].trim() !== 'endif') {
