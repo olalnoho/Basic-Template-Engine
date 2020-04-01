@@ -69,10 +69,10 @@ const parse = (str, opts) => {
          while (parent && parent.whitespace > el.whitespace) {
             parent = stack.pop()
          }
-         if (!parent) {
+         if (!stack.last) {
             throw new Error('Document cannot have two roots')
          }
-         parent.children.push(el)
+         stack.last.children.push(el)
          stack.push(el)
       }
    }
