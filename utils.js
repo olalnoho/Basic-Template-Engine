@@ -66,6 +66,7 @@ const iterate = (exprs, arr, parent, ws) => {
 }
 
 const buildIfBody = (exprs, parent, ws) => {
+   console.log(exprs)
    exprs.forEach(e => {
       parent.children.push(
          makeObj(' ' .repeat(ws) + e)

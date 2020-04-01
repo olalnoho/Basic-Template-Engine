@@ -32,7 +32,6 @@ const parse = (str, opts) => {
             exprs.push(insertValues(arr[i].trim(), opts))
          }
          iterate(exprs, iterator, stack.last, getWhiteSpace(token))
-         i++
          continue
       }
 
@@ -45,7 +44,6 @@ const parse = (str, opts) => {
          if (evalCond(condition, opts)) {
             buildIfBody(exprs, stack.last, getWhiteSpace(token))
          }
-         i++
          continue
       }
 
