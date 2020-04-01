@@ -25,7 +25,10 @@ const parse = (str, opts) => {
       let t_token = token.trim()
       if (!t_token) continue
 
+      // @todo Make this continue down and just build the
+      // things in the body
       if (t_token.startsWith('each ')) {
+         const ws = getWhiteSpace(token)
          const s = token.trim().split(' ')[1]
          const iterator = opts[s] || getIterator(s)
          const exprs = []
@@ -33,19 +36,23 @@ const parse = (str, opts) => {
             // exprs.push(arr[i].trim())
             exprs.push(insertValues(arr[i].trim(), opts))
          }
-         iterate(exprs, iterator, stack.last, getWhiteSpace(token))
+         const children = iterate(exprs, iterator, stack.last, ws)
+         while (stack.last.whitespace >= ws) stack.pop()
+         stack.last.children = stack.last.children.concat(children)
          continue
       }
 
       if (t_token.startsWith('if ')) {
-         console.log(stack.last)
+         const ws = getWhiteSpace(token)
          const condition = t_token.slice(2).trim()
          const exprs = []
          while (arr[++i].trim() !== 'endif') {
-            exprs.push(insertValues(arr[i].trim(), opts))
+            exprs.push(insertValues(arr[i].trim(), opts, false))
          }
          if (evalCond(condition, opts)) {
-            buildIfBody(exprs, stack.last, getWhiteSpace(token))
+            const children = buildIfBody(exprs, stack.last, ws)
+            while (stack.last.whitespace >= ws) stack.pop()
+            stack.last.children = stack.last.children.concat(children)
          }
          continue
       }
@@ -56,6 +63,9 @@ const parse = (str, opts) => {
          throw new WhiteSpaceError(tabLen)
       }
       const prev = stack.last
+
+      // Where to place element
+
       if (el.whitespace > prev.whitespace) {
          if (!validator) {
             validator = validateWhiteSpace(el.whitespace)
@@ -65,6 +75,7 @@ const parse = (str, opts) => {
          stack.push(el)
       } else if (el.whitespace == prev.whitespace) {
          stack.pop()
+         // Maybe concat here to support array objects from 'each' and 'if'
          stack.last.children.push(el)
          stack.push(el)
       } else {
@@ -83,11 +94,11 @@ const parse = (str, opts) => {
    fs.writeFileSync('./testfiles/index.html', makeHTML(root))
 }
 
-const file = fs.readFileSync('./testfiles/testfile', 'utf8')
+const file = fs.readFileSync('./testfiles/fixthis', 'utf8')
 parse(file, {
-   name: 'Alex',
+   // name: 'Alex',
    age12: 25,
-   arr: [1,2,3,4,5]
+   names: ['John', 'Mary']
 })
 // parse(file, {
 //    paragraph: 'This is a long paragraph',

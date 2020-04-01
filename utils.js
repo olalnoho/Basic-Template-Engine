@@ -59,31 +59,37 @@ const evalCond = (cond, input) => {
 const getIterator = exp => {
    const [start, end] = exp.split('..')
    if(!start || !end) throw new Error('Not a valid iterator')
-   const a = Array.from({length: (end - start) + 1}, (x, i) => +start + i)
-   console.log(a)
-   return a
+   return Array.from({length: (end - start) + 1}, (x, i) => +start + i)
 }
 
 const iterate = (exprs, arr, parent, ws) => {
+   const els = []
    for (let i = 0; i < arr.length; i++) {
       const formatted = exprs.map(x => x.replace('$_', arr[i]).replace('$i', i))
       formatted.forEach(x => {
-         parent.children.push(makeObj(' '.repeat(ws) + x))
+         // parent.children
+         els.push(makeObj(' '.repeat(ws) + x))
       })
    }
+   return els
 }
 
 const buildIfBody = (exprs, parent, ws) => {
+   const els = []
    exprs.forEach(e => {
-      parent.children.push(
+      // parent.children
+      els.push(
          makeObj(' '.repeat(ws) + e)
       )
    })
+   return els
 }
 
-const insertValues = (token, opts) => {
+const insertValues = (token, opts, shouldThrow = true) => {
    return token.replace(/\$\{(\w+)\}/g, (val, g) => {
-      if (!opts[g]) throw new Error(`Could not find value for ${g}`)
+      if(shouldThrow) {
+         if (!opts[g]) throw new Error(`Could not find value for ${g}`)
+      }
       return opts[g]
    })
 }
