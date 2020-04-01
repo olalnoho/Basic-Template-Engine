@@ -50,13 +50,34 @@ const makeObj = line => {
    }
 }
 
+const evalCond = (cond, input) => {
+   if(/\$\{\w+\}/.test(cond)) {
+      return cond.slice(2, -1) in input
+   }
+}
+
 const iterate = (exprs, arr, parent, ws) => {
-   for(let i = 0; i < arr.length; i++) {
+   for (let i = 0; i < arr.length; i++) {
       const formatted = exprs.map(x => x.replace('$_', arr[i]).replace('$i', i))
       formatted.forEach(x => {
          parent.children.push(makeObj(' '.repeat(ws) + x))
       })
    }
+}
+
+const buildIfBody = (exprs, parent, ws) => {
+   exprs.forEach(e => {
+      parent.children.push(
+         makeObj(' ' .repeat(ws) + e)
+      )
+   })
+}
+
+const insertValues = (token, opts) => {
+   return token.replace(/\$\{(\w+)\}/g, (val, g) => {
+      if (!opts[g]) throw new Error(`Could not find value for ${g}`)
+      return opts[g]
+   })
 }
 
 const makeHTML = (node, first = false) => {
@@ -78,5 +99,8 @@ module.exports = {
    makeHTML,
    validateWhiteSpace,
    WhiteSpaceError,
-   iterate
+   iterate,
+   evalCond,
+   buildIfBody,
+   insertValues
 }

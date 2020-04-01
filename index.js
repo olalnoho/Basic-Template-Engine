@@ -5,7 +5,10 @@ const {
    makeHTML,
    validateWhiteSpace,
    WhiteSpaceError,
-   iterate
+   iterate,
+   evalCond,
+   buildIfBody,
+   insertValues
 } = require('./utils')
 
 const IS_DEBUG = process.argv[2] == 'd';
@@ -18,21 +21,35 @@ const parse = (str, opts) => {
    let tabLen;
    for (let i = 0; i < arr.length; i++) {
       let token = arr[i]
-      if (!token.trim()) continue
-      token = arr[i].replace(/\$\{(.+)\}/, (val, g) => {
-         if(!opts[g]) throw new Error(`Could not find value for ${g}`)
-         return opts[g]
-      })
-      if(token.trim().startsWith('each ')) {
+      let t_token = token.trim()
+      if (!t_token) continue
+
+      if (t_token.startsWith('each ')) {
          const iterator = opts[token.trim().split(' ')[1]]
          const exprs = []
-         while(arr[++i].trim() !== 'end') {
-            exprs.push(arr[i].trim())
+         while (arr[++i].trim() !== 'end') {
+            // exprs.push(arr[i].trim())
+            exprs.push(insertValues(arr[i].trim(), opts))
          }
          iterate(exprs, iterator, stack.last, getWhiteSpace(token))
-         token = arr[++i]
-         if(!token) break
+         i++
+         continue
       }
+
+      if (t_token.startsWith('if ')) {
+         const condition = t_token.slice(2).trim()
+         const exprs = []
+         while (arr[++i].trim() !== 'endif') {
+            exprs.push(insertValues(arr[i].trim(), opts))
+         }
+         if (evalCond(condition, opts)) {
+            buildIfBody(exprs, stack.last, getWhiteSpace(token))
+         }
+         i++
+         continue
+      }
+
+      token = insertValues(token, opts)
       const el = makeObj(token)
       if (validator && !validator(el.whitespace)) {
          throw new WhiteSpaceError(tabLen)
@@ -67,12 +84,17 @@ const parse = (str, opts) => {
 
 const file = fs.readFileSync('./testfiles/testfile', 'utf8')
 parse(file, {
-   paragraph: 'This is a long paragraph',
-   heading: 'Title for box',
-   values: [
-      'Mandy',
-      'Jasmine',
-      'James',
-      'Steve'
-   ]
+   name: 'Alex',
+   age12: 25,
+   arr: [1,2,3,4,5]
 })
+// parse(file, {
+//    paragraph: 'This is a long paragraph',
+//    heading: 'Title for box',
+//    values: [
+//       'Mandy',
+//       'Jasmine',
+//       'James',
+//       'Steve'
+//    ]
+// })
