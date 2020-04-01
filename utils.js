@@ -17,7 +17,7 @@ const getWhiteSpace = line => (line.match(/^\s+/g) || [''])[0].length
 
 const getAttrs = line => {
    line = line.trim()
-   const a = (line.match(/(?<=^\w+\()(.+)(?=\))/g) || [null])[0]
+   const a = (line.match(/(?<=^\w+\s*\()(.+)(?=\))/g) || [null])[0]
    if (!a) return
    const attribs = a.match(/(\w+\s*\=\s*\"[^\"]+\")/g)
    return attribs.reduce((a, c) => {
@@ -33,8 +33,8 @@ const getTagName = line => line.trim().match(/^\w+/)[0]
 
 const getTextContent = line => {
    line = line.trim()
-   if (/^\w+\(/.test(line)) {
-      return line.replace(/^\w+\([^)]+\)/, '').trim()
+   if (/^\w+\s*\(/.test(line)) {
+      return line.replace(/^\w+\s*\([^)]+\)/, '').trim()
    }
 
    return line.replace(/^\S+/, '').trim()
@@ -66,7 +66,6 @@ const iterate = (exprs, arr, parent, ws) => {
 }
 
 const buildIfBody = (exprs, parent, ws) => {
-   console.log(exprs)
    exprs.forEach(e => {
       parent.children.push(
          makeObj(' ' .repeat(ws) + e)
