@@ -22,11 +22,11 @@ const parse = (str, opts) => {
    let tabLen;
    for (let i = 0; i < arr.length; i++) {
       let token = arr[i]
-      let t_token = token.trim()
+      const t_token = token.trim()
       if (!t_token) continue
 
-      // @todo Make this continue down and just build the
-      // things in the body
+      // Repeated logic in each and if, try to re-use in a shared place.
+
       if (t_token.startsWith('each ')) {
          const ws = getWhiteSpace(token)
          const s = token.trim().split(' ')[1]
@@ -37,7 +37,8 @@ const parse = (str, opts) => {
             exprs.push(insertValues(arr[i].trim(), opts))
          }
          const children = iterate(exprs, iterator, stack.last, ws)
-         while (stack.last.whitespace >= ws) stack.pop()
+         while (stack.last && stack.last.whitespace >= ws) stack.pop()
+         if(!stack.last) throw new Error('Document cannot have two roots')
          stack.last.children = stack.last.children.concat(children)
          continue
       }
@@ -51,7 +52,8 @@ const parse = (str, opts) => {
          }
          if (evalCond(condition, opts)) {
             const children = buildIfBody(exprs, stack.last, ws)
-            while (stack.last.whitespace >= ws) stack.pop()
+            while (stack.last && stack.last.whitespace >= ws) stack.pop()
+            if(!stack.last) throw new Error('Document cannot have two roots')
             stack.last.children = stack.last.children.concat(children)
          }
          continue
@@ -96,7 +98,7 @@ const parse = (str, opts) => {
 
 const file = fs.readFileSync('./testfiles/fixthis', 'utf8')
 parse(file, {
-   // name: 'Alex',
+   name: 'Alex',
    age12: 25,
    names: ['John', 'Mary']
 })
