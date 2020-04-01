@@ -66,7 +66,7 @@ const parse = (str, opts) => {
          stack.push(el)
       } else {
          let parent = stack.pop()
-         while (parent && parent.whitespace >= el.whitespace) {
+         while (parent && parent.whitespace > el.whitespace) {
             parent = stack.pop()
          }
          if (!parent) {
